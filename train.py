@@ -128,7 +128,8 @@ def main(
         data_dir, metadata_path, src_feat, ref_feat, n_samples, preload
     )
     input_dim, ref_dim, tgt_dim = dataset.get_feat_dim()
-    lengths = [trainlen := int(0.9 * len(dataset)), len(dataset) - trainlen]
+    trainlen = int(0.9 * len(dataset)
+    lengths = [trainlen, len(dataset) - trainlen]
     trainset, validset = random_split(dataset, lengths)
     print(f'Input dim: {input_dim}, Reference dim: {ref_dim}, Target dim: {tgt_dim}')
     model = S2VC(input_dim, ref_dim).to(device)
