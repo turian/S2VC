@@ -3,8 +3,10 @@ gdown
 tqdm
 librosa
 soundfile
-torch==1.7.1
-torchaudio==0.7.2
+#torch==1.7.1
+#torchaudio==0.7.2
+torch
+torchaudio
 argparse
 matplotlib
 tensorboard
