@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--preload", action="store_true")
     parser.add_argument("--lr_reduction", action="store_true")
     parser.add_argument("--comment", type=str)
+    parser.add_argument("--finetune", type=str, default=None)
 
 
     return vars(parser.parse_args())
@@ -117,6 +118,7 @@ def main(
     preload,
     lr_reduction,
     comment,
+    finetune,
 ):
     """Main function."""
 
@@ -132,8 +134,11 @@ def main(
     lengths = [trainlen, len(dataset) - trainlen]
     trainset, validset = random_split(dataset, lengths)
     print(f'Input dim: {input_dim}, Reference dim: {ref_dim}, Target dim: {tgt_dim}')
-    model = S2VC(input_dim, ref_dim).to(device)
-    model = torch.jit.script(model)
+    if finetune is None:
+        model = S2VC(input_dim, ref_dim).to(device)
+        model = torch.jit.script(model)
+    else:
+        model = torch.jit.load(finetune).to(device)
 
     train_loader = DataLoader(
         trainset,
