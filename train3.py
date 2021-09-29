@@ -142,7 +142,7 @@ def main(
         f"Input dim: {input_dim}, Input dim 2: {input_dim2}, Reference dim: {ref_dim}, Target dim: {tgt_dim}"
     )
     if finetune is None:
-        model = S2VC3(input_dim, ref_dim).to(device)
+        model = S2VC3(input_dim, input_dim2, ref_dim).to(device)
         model = torch.jit.script(model)
     else:
         model = torch.jit.load(finetune).to(device)
