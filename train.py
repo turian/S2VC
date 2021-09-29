@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument("--save_dir", type=str, default=".")
     parser.add_argument("--total_steps", type=int, default=250000)
     parser.add_argument("--warmup_steps", type=int, default=100)
+    parser.add_argument("--max_valid", type=int, default=300)
     parser.add_argument("--valid_steps", type=int, default=1000)
     parser.add_argument("--log_steps", type=int, default=100)
     parser.add_argument("--save_steps", type=int, default=10000)
@@ -106,6 +107,7 @@ def main(
     save_dir,
     total_steps,
     warmup_steps,
+    max_valid,
     valid_steps,
     log_steps,
     save_steps,
@@ -130,7 +132,7 @@ def main(
         data_dir, metadata_path, src_feat, ref_feat, n_samples, preload
     )
     input_dim, ref_dim, tgt_dim = dataset.get_feat_dim()
-    trainlen = int(0.9 * len(dataset))
+    trainlen = max(int(0.9 * len(dataset)), len(dataset) - max_valid)
     lengths = [trainlen, len(dataset) - trainlen]
     trainset, validset = random_split(dataset, lengths)
     print(f'Input dim: {input_dim}, Reference dim: {ref_dim}, Target dim: {tgt_dim}')
