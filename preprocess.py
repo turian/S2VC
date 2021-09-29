@@ -3,8 +3,8 @@
 
 import os
 import json
+import hashlib
 from pathlib import Path
-from tempfile import mkstemp
 from multiprocessing import cpu_count
 
 import tqdm
@@ -102,8 +102,8 @@ def main(
         with torch.no_grad():
             feat = feat_extractor.get_feature(wav)[0]
             mel = mel_extractor.get_feature(wav)[0]
-        # TODO: Use hash, not random tempfile
-        fd, temp_file = mkstemp(suffix=".tar", prefix="utterance-", dir=out_dir_path)
+        audio_short_path = speaker_name + "/" + audio_path.name
+        temp_file = out_dir_path / f"utterance-{hashlib.md5(audio_short_path.encode('utf-8')).hexdigest()[:16]}.tar"
         torch.save({"feat": feat.detach().cpu(), "mel": mel.detach().cpu()}, temp_file)
         os.close(fd)
 
@@ -113,7 +113,7 @@ def main(
         audio_paths.add(audio_path)
         speaker_infos[speaker_name].append(
             {
-                "feature_path": Path(temp_file).name,
+                "feature_path": temp_file.name,
                 "audio_path": audio_path,
                 "mel_len": len(mel),
                 "mel_shape": mel.shape,
