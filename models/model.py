@@ -165,10 +165,10 @@ class S2VC3(nn.Module):
         srcs2 = srcs2.transpose(0, 1)
         assert out.shape[0] <= srcs2.shape[0]
         srcs2 = srcs2[:out.shape[0],:,:]
-        print(out.shape, srcs2.shape)
+        #print(out.shape, srcs2.shape)
 
         out = torch.dstack([out, srcs2])
-        print(out.shape)
+        #print(out.shape)
 
         # out: (src_len, batch, 80)
         out = self.mel_linear(out)
