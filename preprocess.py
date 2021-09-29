@@ -62,21 +62,39 @@ def main(
         dataset, batch_size=1, shuffle=False, drop_last=False, num_workers=n_workers
     )
 
+    audio_paths = set()
 
-    speaker_infos = {}
-    speaker_infos['feature_name'] = feature_name
+    out_dir_file = out_dir_path / "metadata.json"
+    if out_dir_file.exists():
+        with open(out_dir_file, "w") as f:
+            speaker_infos = json.load(f)
+            for speaker_name in speaker_infos:
+                speaker_infos[speaker_name] = [row for row in speaker_infos[speaker_name] if os.path.exists(row["audio_path"])]
+                for row in speaker_infos[speaker_name]:
+                    audio_paths.add(row["audio_path"])
+        print("%d files cached from %s" % (len(audio_paths), out_dir_file))
+    else:
+        speaker_infos = {}
+        speaker_infos['feature_name'] = feature_name
 
     pbar = tqdm.tqdm(total=len(dataset), ncols=0)
     mapping = {'apc': 'fbank', 'timit_posteriorgram': 'fbank', 'cpc': 'cpc_mel', 'wav2vec2': 'wav2vec2_mel', 'crepe': 'fbank'}
     feat_extractor = FeatureExtractor(feature_name, wav2vec_path, device)
     mel_extractor = FeatureExtractor(mapping[feature_name], wav2vec_path, device)
     for speaker_name, audio_path, wav in dataloader:
+        # Update first in case we end early
+        pbar.update(dataloader.batch_size)
+
         if wav.size(-1) < 10:
             continue
 
         wav = wav.to(device)
         speaker_name = speaker_name[0]
         audio_path = audio_path[0]
+
+        if audio_path in audio_paths:
+            # We have already cached this
+            continue
 
         
         with torch.no_grad():
@@ -89,6 +107,7 @@ def main(
         if speaker_name not in speaker_infos.keys():
             speaker_infos[speaker_name] = []
 
+        audio_paths.add(audio_path)
         speaker_infos[speaker_name].append(
             {
                 "feature_path": Path(temp_file).name,
@@ -99,10 +118,9 @@ def main(
             }
         )
 
-        pbar.update(dataloader.batch_size)
-
-    with open(out_dir_path / "metadata.json", "w") as f:
-        json.dump(speaker_infos, f, indent=2)
+        # Save every step
+        with open(out_dir_path / "metadata.json", "w") as f:
+            json.dump(speaker_infos, f, indent=2)
 
 
 if __name__ == "__main__":
