@@ -1,4 +1,6 @@
 import torch
+import torchcrepe
+
 from functools import partial
 from multiprocessing import Pool, cpu_count
 from models import load_pretrained_wav2vec
@@ -15,7 +17,13 @@ class FeatureExtractor:
             or feature_name == "fbank"
         ):
             self.extractor = (
-                torch.hub.load("s3prl/s3prl:f2114342ff9e813e18a580fa41418aee9925414e", feature_name, refresh=True).eval().to(device)
+                torch.hub.load(
+                    "s3prl/s3prl:f2114342ff9e813e18a580fa41418aee9925414e",
+                    feature_name,
+                    refresh=True,
+                )
+                .eval()
+                .to(device)
             )
             self.mode = 1
         elif feature_name == "wav2vec2":
@@ -47,10 +55,14 @@ class FeatureExtractor:
                 center=True,
             )
             self.mode = 3
+        elif feature_name == "crepe":
+            torchcrepe.load.model(device=device, capacity="full")
+            self.extractor = partial(_torchcrepe, device=device)
+            self.mode = 3
         else:
             print(feature_name)
             print(
-                "Please use timit_posteriorgram, apc, wav2vec2, cpc, wav2vec2_mel, cpc_mel, or fbank"
+                "Please use timit_posteriorgram, apc, wav2vec2, cpc, wav2vec2_mel, cpc_mel, crepe, or fbank"
             )
             exit()
 
@@ -60,7 +72,9 @@ class FeatureExtractor:
         elif self.mode == 2:
             feats = []
             for wav in wavs:
-                feat = self.extractor.extract_features(wav.unsqueeze(0), None)[0].squeeze(0)
+                feat = self.extractor.extract_features(wav.unsqueeze(0), None)[
+                    0
+                ].squeeze(0)
                 feats.append(feat)
         elif self.mode == 3:
             wavs = [wav.cpu().numpy() for wav in wavs]
@@ -69,3 +83,22 @@ class FeatureExtractor:
             return feats
 
         return feats
+
+
+def _torchcrepe(x, device):
+    embedding = torchcrepe.embed(
+        audio=x.view(1, -1),
+        sample_rate=16000,
+        # NOTE: This is CPC mel, not wav2vec2 mel
+        hop_length=160,
+        model="full",
+        device=device,
+        pad=False,
+        # pad=True,
+        batch_size=512,
+    )
+    # Convert 1 x frames x 32x64 embedding to frames x 32*64
+    assert embedding.shape[0] == 1
+    assert embedding.ndim == 4
+    embedding = embedding.view((embedding.shape[1], -1))
+    return embedding

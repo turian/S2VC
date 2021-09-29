@@ -67,7 +67,7 @@ def main(
     speaker_infos['feature_name'] = feature_name
 
     pbar = tqdm.tqdm(total=len(dataset), ncols=0)
-    mapping = {'apc': 'fbank', 'timit_posteriorgram': 'fbank', 'cpc': 'cpc_mel', 'wav2vec2': 'wav2vec2_mel'}
+    mapping = {'apc': 'fbank', 'timit_posteriorgram': 'fbank', 'cpc': 'cpc_mel', 'wav2vec2': 'wav2vec2_mel', 'crepe': 'fbank'}
     feat_extractor = FeatureExtractor(feature_name, wav2vec_path, device)
     mel_extractor = FeatureExtractor(mapping[feature_name], wav2vec_path, device)
     for speaker_name, audio_path, wav in dataloader:
@@ -94,6 +94,8 @@ def main(
                 "feature_path": Path(temp_file).name,
                 "audio_path": audio_path,
                 "mel_len": len(mel),
+                "mel_shape": mel.shape,
+                "feat_shape": feat.shape,
             }
         )
 
