@@ -6,6 +6,8 @@ from multiprocessing import Pool, cpu_count
 from models import load_pretrained_wav2vec
 from data import log_mel_spectrogram
 
+class Object(object):
+    pass
 
 class FeatureExtractor:
     def __init__(self, feature_name, wav2vec2_path=None, device=None):
@@ -57,7 +59,8 @@ class FeatureExtractor:
             self.mode = 3
         elif feature_name == "crepe":
             torchcrepe.load.model(device=device, capacity="full")
-            self.extractor = partial(_torchcrepe, device=device)
+            self.extractor = Object()
+            self.extractor.extract_features = partial(_torchcrepe, device=device)
             self.mode = 3
         else:
             print(feature_name)
@@ -87,8 +90,7 @@ class FeatureExtractor:
 
 def _torchcrepe(x, device):
     embedding = torchcrepe.embed(
-        # TODO: Faster if we don't move back and forth from CPU
-        audio=torch.tensor(x, device=device).view(1, -1),
+        audio=x,
         sample_rate=16000,
         # NOTE: This is CPC mel, not wav2vec2 mel
         hop_length=160,
@@ -98,8 +100,8 @@ def _torchcrepe(x, device):
         pad=True,
         batch_size=512,
     )
-    # Convert 1 x frames x 32x64 embedding to frames x 32*64
+    # Convert 1 x frames x 32 x 64 embedding to [1 x frames x 32*64]
     assert embedding.shape[0] == 1
     assert embedding.ndim == 4
-    embedding = embedding.view((embedding.shape[1], -1))
-    return embedding.to("cpu")
+    embedding = [embedding.view((1, embedding.shape[1], -1))]
+    return embedding
