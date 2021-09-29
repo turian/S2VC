@@ -71,7 +71,7 @@ def main(
             for speaker_name in speaker_infos:
                 if speaker_name == "feature_name":
                     continue
-                speaker_infos[speaker_name] = [row for row in speaker_infos[speaker_name] if os.path.exists(row["audio_path"])]
+                speaker_infos[speaker_name] = [row for row in speaker_infos[speaker_name] if os.path.exists(row["audio_path"]) and os.path.exists(out_dir_path / row["feature_path"])]
                 for row in speaker_infos[speaker_name]:
                     audio_paths.add(row["audio_path"])
         print("%d files cached from %s" % (len(audio_paths), out_dir_file))
