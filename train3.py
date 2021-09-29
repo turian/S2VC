@@ -141,11 +141,20 @@ def main(
     print(
         f"Input dim: {input_dim}, Input dim 2: {input_dim2}, Reference dim: {ref_dim}, Target dim: {tgt_dim}"
     )
+    model = S2VC3(input_dim, input_dim2, ref_dim).to(device)
+    model = torch.jit.script(model)
     if finetune is None:
-        model = S2VC3(input_dim, input_dim2, ref_dim).to(device)
-        model = torch.jit.script(model)
+        pass
     else:
-        model = torch.jit.load(finetune).to(device)
+        oldmodel = torch.jit.load(finetune).to(device)
+        for k, v in oldmodel.named_parameters():
+            if k not in model.state_dict():
+                print(f"{k} not in S2VC3")
+            elif model.state_dict()[k].numel() != oldmodel.state_dict()[k].numel():
+                print(f"{k} numel different in S2VC3")
+            else:
+                model.state_dict()[k].data = torch.clone(oldmodel.state_dict()[k].data)
+        oldmodel = None
 
     train_loader = DataLoader(
         trainset,

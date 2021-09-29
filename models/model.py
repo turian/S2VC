@@ -17,6 +17,7 @@ class S2VC(nn.Module):
 
     def __init__(self, input_dim, ref_dim, d_model=512):
         super().__init__()
+        self.name = "S2VC"
         self.unet = UnetBlock(d_model, input_dim, ref_dim)
 
         self.smoothers = nn.TransformerEncoder(Smoother(d_model, 2, 1024), num_layers=3)
@@ -112,6 +113,7 @@ class SelfAttentionPooling(nn.Module):
 class S2VC3(nn.Module):
     def __init__(self, input_dim, input_dim2, ref_dim, d_model=512):
         super().__init__()
+        self.name = "S2VC3"
         self.unet = UnetBlock(d_model, input_dim, ref_dim)
 
         self.smoothers = nn.TransformerEncoder(Smoother(d_model, 2, 1024), num_layers=3)
