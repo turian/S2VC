@@ -79,7 +79,6 @@ def main(
     with Pool(cpu_count()) as pool:
         for pair_name, pair in tqdm(infos.items()):
             src_wav = load_wav(pair["source"], sample_rate, trim=True)
-            src_wav = torch.FloatTensor(src_wav).to(device)
 
             out_mel = extractor(src_wav)
             print(out_mel.shape)
