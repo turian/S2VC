@@ -81,7 +81,7 @@ def main(
             src_wav = load_wav(pair["source"], sample_rate, trim=True)
             src_wav = torch.FloatTensor(src_wav).to(device)
 
-            out_mel = log_mel_spectrogram(src_wav)
+            out_mel = extractor(src_wav)
             print(out_mel.shape)
             out_mels.append(out_mel)
             """
