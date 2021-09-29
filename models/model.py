@@ -167,7 +167,7 @@ class S2VC3(nn.Module):
         srcs2 = srcs2[:out.shape[0],:,:]
         print(out.shape, srcs2.shape)
 
-        out = torch.stack([out, srcs2])
+        out = torch.dstack([out, srcs2])
         print(out.shape)
 
         # out: (src_len, batch, 80)
