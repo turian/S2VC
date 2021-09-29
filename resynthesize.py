@@ -63,7 +63,6 @@ def main(
         infos = yaml.load(f, Loader=yaml.FullLoader)
 
     out_mels = []
-    attns = []
     with Pool(cpu_count()) as pool:
         for pair_name, pair in tqdm(infos.items()):
             src_wav = load_wav(pair["source"], sample_rate, trim=True)
@@ -75,7 +74,6 @@ def main(
                 #out_mel = out_mel.transpose(1, 2).squeeze(0)
                 out_mel = src_mel
                 out_mels.append(out_mel)
-                attns.append(attn)
 
         # print(f"[INFO] Pair {pair_name} converted")
     # out_mel: batch_size, time_stamp, mel_dim
@@ -101,14 +99,13 @@ def main(
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    for pair_name, out_mel, out_wav, attn in tqdm(zip(
-        infos.keys(), out_mels, out_wavs, attns
+    for pair_name, out_mel, out_wav in tqdm(zip(
+        infos.keys(), out_mels, out_wavs
     )):
         out_wav = out_wav.cpu().numpy()
         out_path = Path(out_dir, pair_name)
 
         plot_mel(out_mel, filename=out_path.with_suffix(".mel.png"))
-        plot_attn(attn, filename=out_path.with_suffix(".attn.png"))
         sf.write(out_path.with_suffix(".wav"), out_wav, sample_rate)
 
 
