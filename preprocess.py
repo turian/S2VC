@@ -102,7 +102,7 @@ def main(
         with torch.no_grad():
             feat = feat_extractor.get_feature(wav)[0]
             mel = mel_extractor.get_feature(wav)[0]
-        audio_short_path = speaker_name + "/" + audio_path.name
+        audio_short_path = speaker_name + "/" + Path(audio_path).name
         temp_file = out_dir_path / f"utterance-{hashlib.md5(audio_short_path.encode('utf-8')).hexdigest()[:16]}.tar"
         torch.save({"feat": feat.detach().cpu(), "mel": mel.detach().cpu()}, temp_file)
         os.close(fd)
