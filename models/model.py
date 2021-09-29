@@ -108,6 +108,107 @@ class SelfAttentionPooling(nn.Module):
 
     return utter_rep
 
+
+class S2VC3(nn.Module):
+    def __init__(self, input_dim, input_dim2, ref_dim, d_model=512):
+        super().__init__()
+        self.unet = UnetBlock(d_model, input_dim, ref_dim)
+
+        self.smoothers = nn.TransformerEncoder(Smoother(d_model, 2, 1024), num_layers=3)
+
+        self.mel_linear = nn.Linear(d_model + input_dim2, 80)
+
+        self.post_net = nn.Sequential(
+            nn.Conv1d(80, 512, kernel_size=5, padding=2),
+            nn.BatchNorm1d(512),
+            nn.Tanh(),
+            nn.Dropout(0.5),
+            nn.Conv1d(512, 512, kernel_size=5, padding=2),
+            nn.BatchNorm1d(512),
+            nn.Tanh(),
+            nn.Dropout(0.5),
+            nn.Conv1d(512, 512, kernel_size=5, padding=2),
+            nn.BatchNorm1d(512),
+            nn.Tanh(),
+            nn.Dropout(0.5),
+            nn.Conv1d(512, 512, kernel_size=5, padding=2),
+            nn.BatchNorm1d(512),
+            nn.Tanh(),
+            nn.Dropout(0.5),
+            nn.Conv1d(512, 80, kernel_size=5, padding=2),
+            nn.BatchNorm1d(80),
+            nn.Dropout(0.5),
+        )
+
+    def forward(
+        self,
+        srcs: Tensor,
+        srcs2: Tensor,
+        refs: Tensor,
+        src_masks: Optional[Tensor] = None,
+        src_masks2: Optional[Tensor] = None,
+        ref_masks: Optional[Tensor] = None,
+    ) -> Tuple[Tensor, List[Optional[Tensor]]]:
+        """Forward function.
+
+        Args:
+            srcs: (batch, src_len, 768)
+            src_masks: (batch, src_len)
+            refs: (batch, 80, ref_len)
+            ref_masks: (batch, ref_len)
+        """
+        # out: (src_len, batch, d_model)
+        out, attns = self.unet(srcs, refs, src_masks=src_masks, ref_masks=ref_masks)
+
+        # out: (src_len, batch, d_model)
+        out = self.smoothers(out, src_key_padding_mask=src_masks)
+        print(out.shape, srcs2.shape)
+
+        out = torch.stack(out, srcs2)
+        print(out.shape)
+
+        # out: (src_len, batch, 80)
+        out = self.mel_linear(out)
+
+        # out: (batch, 80, src_len)
+        out = out.transpose(1, 0).transpose(2, 1)
+        refined = self.post_net(out)
+        out = out + refined
+
+        # out: (batch, 80, src_len)
+        return out, attns
+
+
+
+class SelfAttentionPooling(nn.Module):
+  """
+  Implementation of SelfAttentionPooling from https://gist.github.com/pohanchi/c77f6dbfbcbc21c5215acde4f62e4362
+  Original Paper: Self-Attention Encoding and Pooling for Speaker Recognition
+  https://arxiv.org/pdf/2008.01077v1.pdf
+  """
+  def __init__(self, input_dim: int):
+    super(SelfAttentionPooling, self).__init__()
+    self.W = nn.Linear(input_dim, 1)
+    self.softmax = nn.functional.softmax
+
+  def forward(self, batch_rep: Tensor, att_mask: Optional[Tensor] = None):
+    """
+      N: batch size, T: sequence length, H: Hidden dimension
+      input:
+        batch_rep : size (N, T, H)
+      attention_weight:
+        att_w : size (N, T, 1)
+      return:
+        utter_rep: size (N, H)
+    """
+    att_logits = self.W(batch_rep).squeeze(-1)
+    if att_mask is not None:
+      att_logits = att_logits.masked_fill(att_mask, 1e-20)
+    att_w = self.softmax(att_logits, dim=-1).unsqueeze(-1)
+    utter_rep = torch.sum(batch_rep * att_w, dim=1)
+
+    return utter_rep
+
 class SourceEncoder(nn.Module):
     def __init__(self, d_model: int, input_dim: int):
         super(SourceEncoder, self).__init__()

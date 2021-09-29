@@ -15,7 +15,7 @@ from tqdm import tqdm
 import numpy as np
 
 from data import IntraSpeakerDataset3, collate_batch3, plot_attn
-from models import S2VC, get_cosine_schedule_with_warmup
+from models import S2VC3, get_cosine_schedule_with_warmup
 
 random.seed(42)
 torch.manual_seed(42)
@@ -66,7 +66,7 @@ def model_fn(batch, model, criterion, device):
     ref_masks = tgt_masks
 
     # TODO:
-    outs, attns = model(srcs, refs, src_masks=src_masks, ref_masks=ref_masks)
+    outs, attns = model(srcs, srcs2, refs, src_masks=src_masks, src_masks2=src_masks2, ref_masks=ref_masks)
 
     losses = []
     for out, tgt_mel, attn, overlap_len in zip(
@@ -142,7 +142,7 @@ def main(
         f"Input dim: {input_dim}, Input dim 2: {input_dim2}, Reference dim: {ref_dim}, Target dim: {tgt_dim}"
     )
     if finetune is None:
-        model = S2VC(input_dim, ref_dim).to(device)
+        model = S2VC3(input_dim, ref_dim).to(device)
         model = torch.jit.script(model)
     else:
         model = torch.jit.load(finetune).to(device)
