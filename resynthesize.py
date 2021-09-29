@@ -69,11 +69,11 @@ def main(
                 preemph=0.97,
                 sample_rate=16000,
                 n_mels=80,
-                n_fft=400,
-                hop_length=320,
-                win_length=400,
-                f_min=0,
-                center=False,
+                n_fft=465,
+                hop_length=160,
+                win_length=465,
+                f_min=80,
+                center=True,
             )
 
     out_mels = []
