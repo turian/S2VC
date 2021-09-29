@@ -164,7 +164,7 @@ def main(
         pin_memory=True,
         # shuffle to make the plot on tensorboard differenct
         shuffle=True,
-        collate_fn=collate_batch,
+        collate_fn=collate_batch3,
     )
     train_iterator = iter(train_loader)
 
