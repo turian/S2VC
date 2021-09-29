@@ -88,7 +88,7 @@ class FeatureExtractor:
         return feats
 
 
-def _torchcrepe(x, device):
+def _torchcrepe(x, noop, device):
     embedding = torchcrepe.embed(
         audio=x,
         sample_rate=16000,
