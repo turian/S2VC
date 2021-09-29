@@ -25,7 +25,7 @@ for key in metas[0].keys():
     for subdir, meta in zip(sub_dirs, metas):
         for value in meta[key]:
             merged[key][value['audio_path']]['audio_path'] = value['audio_path']
-            merged[key][value['audio_path']]['feature_name'] = os.path.join(subdir, value['feature_path'])
+            merged[key][value['audio_path']][meta['feature_name']] = os.path.join(subdir, value['feature_path'])
             feature_names.add(meta['feature_name'])
 
 # Remove things that don't have both features
