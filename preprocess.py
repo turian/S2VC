@@ -66,7 +66,7 @@ def main(
 
     out_dir_file = out_dir_path / "metadata.json"
     if out_dir_file.exists():
-        with open(out_dir_file, "w") as f:
+        with open(out_dir_file) as f:
             speaker_infos = json.load(f)
             for speaker_name in speaker_infos:
                 speaker_infos[speaker_name] = [row for row in speaker_infos[speaker_name] if os.path.exists(row["audio_path"])]
