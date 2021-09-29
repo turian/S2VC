@@ -94,8 +94,8 @@ def _torchcrepe(x, device):
         hop_length=160,
         model="full",
         device=device,
-        pad=False,
-        # pad=True,
+        # Still sometimes one more frame than CPC :\
+        pad=True,
         batch_size=512,
     )
     # Convert 1 x frames x 32x64 embedding to frames x 32*64
