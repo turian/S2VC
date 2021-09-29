@@ -69,6 +69,8 @@ def main(
         with open(out_dir_file) as f:
             speaker_infos = json.load(f)
             for speaker_name in speaker_infos:
+                if speaker_name == "feature_name":
+                    continue
                 speaker_infos[speaker_name] = [row for row in speaker_infos[speaker_name] if os.path.exists(row["audio_path"])]
                 for row in speaker_infos[speaker_name]:
                     audio_paths.add(row["audio_path"])
@@ -100,6 +102,7 @@ def main(
         with torch.no_grad():
             feat = feat_extractor.get_feature(wav)[0]
             mel = mel_extractor.get_feature(wav)[0]
+        # TODO: Use hash, not random tempfile
         fd, temp_file = mkstemp(suffix=".tar", prefix="utterance-", dir=out_dir_path)
         torch.save({"feat": feat.detach().cpu(), "mel": mel.detach().cpu()}, temp_file)
         os.close(fd)
