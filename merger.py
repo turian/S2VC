@@ -15,6 +15,7 @@ merged = {}
 for sub_dir in sub_dirs:
     metas.append(json.load(open(os.path.join(dataset_dir, sub_dir, 'metadata.json'))))
 
+feature_names = set()
 for key in metas[0].keys():
     if key == 'feature_name':
         continue
@@ -23,5 +24,14 @@ for key in metas[0].keys():
         for idx, value in enumerate(meta[key]):
             merged[key][idx]['audio_path'] = value['audio_path']
             merged[key][idx][meta['feature_name']] = os.path.join(subdir, value['feature_path'])
+            feature_names.add(meta['feature_name'])
 
+# Remove things that don't have both features
+before = 0
+after = 0
+for key in merged:
+    before += len(merged[key])
+    merged[key] = [row for row in merged[key] if feature_names <= set(row.keys())]
+    after += len(merged[key])
+print(f"Merging, {before} before and {after} after removing things without all features")
 json.dump(merged, open(os.path.join(dataset_dir, 'metadata.json'), 'w'), indent=2)
