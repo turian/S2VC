@@ -167,7 +167,7 @@ class IntraSpeakerDataset3(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def _get_data(self, index):
+    def _get_data3(self, index):
         if self.pre_load:
             speaker_name, content_emb, content_emb2, target_emb, target_mel = self.data[
                 index
@@ -198,7 +198,7 @@ class IntraSpeakerDataset3(Dataset):
         return content_emb, content_emb2, target_emb, target_mel
 
     def get_feat_dim(self):
-        self._get_data(0)
+        self._get_data3(0)
         return self.src_dim, self.src_dim2, self.ref_dim, self.tgt_dim
 
 
