@@ -58,7 +58,7 @@ class FeatureExtractor:
         elif feature_name == "crepe":
             torchcrepe.load.model(device=device, capacity="full")
             self.extractor = partial(_torchcrepe, device=device)
-            self.mode = 2
+            self.mode = 3
         else:
             print(feature_name)
             print(
@@ -87,7 +87,8 @@ class FeatureExtractor:
 
 def _torchcrepe(x, device):
     embedding = torchcrepe.embed(
-        audio=x.view(1, -1),
+        # TODO: Faster if we don't move back and forth from CPU
+        audio=torch.tensor(x, device=device).view(1, -1),
         sample_rate=16000,
         # NOTE: This is CPC mel, not wav2vec2 mel
         hop_length=160,
