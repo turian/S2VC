@@ -162,6 +162,9 @@ class S2VC3(nn.Module):
 
         # out: (src_len, batch, d_model)
         out = self.smoothers(out, src_key_padding_mask=src_masks)
+        srcs2 = srcs2.transpose(0, 1)
+        assert out.shape[0] <= srcs2.shape[0]
+        srcs2 = srcs2[:out.shape[0],:,:]
         print(out.shape, srcs2.shape)
 
         out = torch.stack([out, srcs2])
