@@ -58,7 +58,7 @@ class FeatureExtractor:
         elif feature_name == "crepe":
             torchcrepe.load.model(device=device, capacity="full")
             self.extractor = partial(_torchcrepe, device=device)
-            self.mode = 3
+            self.mode = 2
         else:
             print(feature_name)
             print(
