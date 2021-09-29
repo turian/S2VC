@@ -164,7 +164,7 @@ class S2VC3(nn.Module):
         out = self.smoothers(out, src_key_padding_mask=src_masks)
         print(out.shape, srcs2.shape)
 
-        out = torch.stack(out, srcs2)
+        out = torch.stack([out, srcs2])
         print(out.shape)
 
         # out: (src_len, batch, 80)
