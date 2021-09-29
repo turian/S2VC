@@ -102,4 +102,4 @@ def _torchcrepe(x, device):
     assert embedding.shape[0] == 1
     assert embedding.ndim == 4
     embedding = embedding.view((embedding.shape[1], -1))
-    return embedding
+    return embedding.to("cpu")
