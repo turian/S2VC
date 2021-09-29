@@ -82,7 +82,8 @@ def main(
             #src_wav = torch.FloatTensor(src_wav).to(device)
 
             out_mel = extractor(src_wav)
-            out_mel = torch.FloatTensor(out_mel).to(device).transpose(0, 1).unsqueeze(0)
+            #out_mel = torch.FloatTensor(out_mel).to(device).transpose(0, 1).unsqueeze(0)
+            out_mel = torch.FloatTensor(out_mel).to(device)
             print(out_mel.shape)
             out_mels.append(out_mel)
             """
