@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 from data import load_wav, log_mel_spectrogram, plot_mel, plot_attn
 from data.feature_extract import FeatureExtractor
+from data.utils import log_mel_spectrogram
 from models import load_pretrained_wav2vec
 
 
@@ -62,18 +63,35 @@ def main(
     with open(info_path) as f:
         infos = yaml.load(f, Loader=yaml.FullLoader)
 
+    extractor = partial(
+                log_mel_spectrogram,
+                preemph=0.97,
+                sample_rate=16000,
+                n_mels=80,
+                n_fft=400,
+                hop_length=320,
+                win_length=400,
+                f_min=0,
+                center=False,
+            )
+
     out_mels = []
     with Pool(cpu_count()) as pool:
         for pair_name, pair in tqdm(infos.items()):
             src_wav = load_wav(pair["source"], sample_rate, trim=True)
             src_wav = torch.FloatTensor(src_wav).to(device)
 
+            out_mel = log_mel_spectrogram(src_wav)
+            print(out_mel.shape)
+            out_mels.append(out_mel)
+            """
             with torch.no_grad():
                 src_mel = (ref_feat_model.get_feature([src_wav])[0].transpose(
                         0, 1).unsqueeze(0))
                 #out_mel = out_mel.transpose(1, 2).squeeze(0)
                 out_mel = src_mel
                 out_mels.append(out_mel)
+            """
 
         # print(f"[INFO] Pair {pair_name} converted")
     # out_mel: batch_size, time_stamp, mel_dim
