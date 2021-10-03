@@ -142,19 +142,20 @@ def main(
         f"Input dim: {input_dim}, Input dim 2: {input_dim2}, Reference dim: {ref_dim}, Target dim: {tgt_dim}"
     )
     model = S2VC3(input_dim, input_dim2, ref_dim).to(device)
-    model = torch.jit.script(model)
+    #model = torch.jit.script(model)
     if finetune is None:
         pass
     else:
-        oldmodel = torch.jit.load(finetune).to(device)
-        for k, v in oldmodel.named_parameters():
-            if k not in model.state_dict():
-                print(f"{k} not in S2VC3")
-            elif model.state_dict()[k].numel() != oldmodel.state_dict()[k].numel():
-                print(f"{k} numel different in S2VC3")
-            else:
-                model.state_dict()[k].data = torch.clone(oldmodel.state_dict()[k].data)
-        oldmodel = None
+        model.load_state_dict(torch.load(finetune))
+#        oldmodel = torch.jit.load(finetune).to(device)
+#        for k, v in oldmodel.named_parameters():
+#            if k not in model.state_dict():
+#                print(f"{k} not in S2VC3")
+#            elif model.state_dict()[k].numel() != oldmodel.state_dict()[k].numel():
+#                print(f"{k} numel different in S2VC3")
+#            else:
+#                model.state_dict()[k].data = torch.clone(oldmodel.state_dict()[k].data)
+#        oldmodel = None
 
     train_loader = DataLoader(
         trainset,
@@ -197,10 +198,10 @@ def main(
     pbar = tqdm(total=valid_steps, ncols=0, desc="Train", unit=" step")
 
     for step in range(total_steps):
-        if step == 40002:
-            file = open("completed.txt", "a")
-            print(f"{comment} completed", file=file)
-            break
+#        if step == 40002:
+#            file = open("completed.txt", "a")
+#            print(f"{comment} completed", file=file)
+#            break
         batch_loss = 0.0
 
         for _ in range(accu_steps):
@@ -262,10 +263,10 @@ def main(
             model.cpu()
 
             model.load_state_dict(best_state_dict)
-            model.save(str(save_dir_path / best_ckpt_name))
+            torch.save(model.state_dict(), str(save_dir_path / best_ckpt_name))
 
             model.load_state_dict(current_state_dict)
-            model.save(str(save_dir_path / curr_ckpt_name))
+            torch.save(model.state_dict(), str(save_dir_path / curr_ckpt_name))
 
             model.to(device)
             pbar.write(f"Step {step + 1}, best model saved. (loss={best_loss:.4f})")
